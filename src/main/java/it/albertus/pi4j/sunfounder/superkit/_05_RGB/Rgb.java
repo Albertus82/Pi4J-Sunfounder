@@ -15,6 +15,7 @@ public class Rgb {
 	private static void ledInit() {
 		ledPinRed = gpio.provisionSoftPwmOutputPin(RaspiPin.GPIO_00, 0);
 		ledPinGreen = gpio.provisionPwmOutputPin(RaspiPin.GPIO_01, 0);
+		ledPinGreen.setPwmRange(100);
 		ledPinBlue = gpio.provisionSoftPwmOutputPin(RaspiPin.GPIO_02, 0);
 	}
 
