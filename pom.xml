@@ -12,11 +12,10 @@
 		<lib.directory>lib</lib.directory>
 		<java.version>1.7</java.version>
 		<java.xms>4</java.xms>
-		<java.xmx>12</java.xmx>
+		<java.xmx>8</java.xmx>
 		<java.MaxMetaspaceSize>16</java.MaxMetaspaceSize>
 		<java.MaxPermSize>16</java.MaxPermSize>
 		<java.ReservedCodeCacheSize>4</java.ReservedCodeCacheSize>
-		<vm.maxHeapSize>16</vm.maxHeapSize>
 		<maven.compiler.source>${java.version}</maven.compiler.source>
 		<maven.compiler.target>${java.version}</maven.compiler.target>
 	</properties>
