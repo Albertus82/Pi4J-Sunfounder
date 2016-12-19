@@ -10,4 +10,4 @@ while [ -h "$PRG" ]; do
   fi
 done
 PRGDIR=`dirname "$PRG"`
-java -Xms${java.xms}m -Xmx${java.xmx}m -XX:MaxMetaspaceSize=${java.MaxMetaspaceSize}m -XX:MaxPermSize=${java.MaxPermSize}m -XX:ReservedCodeCacheSize=${java.ReservedCodeCacheSize}m -classpath "$PRGDIR/${artifactId}.jar:$PRGDIR/*" $1
+java -Xms${java.xms}m -Xmx${java.xmx}m -XX:MaxMetaspaceSize=${java.MaxMetaspaceSize}m -XX:MaxPermSize=${java.MaxPermSize}m -XX:ReservedCodeCacheSize=${java.ReservedCodeCacheSize}m -classpath "$PRGDIR/${artifactId}.jar:$PRGDIR/*" it.albertus.pi4j.sunfounder.superkit._$1
