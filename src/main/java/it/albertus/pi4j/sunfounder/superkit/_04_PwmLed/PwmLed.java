@@ -10,7 +10,7 @@ public class PwmLed {
 	public static void main(final String... args) throws InterruptedException {
 		final GpioController gpio = GpioFactory.getInstance();
 
-		final GpioPinPwmOutput ledPin = gpio.provisionPwmOutputPin(RaspiPin.GPIO_01, 0); //pwm output mode
+		final GpioPinPwmOutput ledPin = gpio.provisionPwmOutputPin(RaspiPin.GPIO_01); //pwm output mode
 
 		while (true) {
 			for (int i = 0; i < 1024; i++) {
