@@ -21,13 +21,6 @@ public class DblPwmLed {
 		ledPin1.setShutdownOptions(true, PinState.LOW, PinPullResistance.PULL_DOWN); // IN 0
 		ledPin2.setShutdownOptions(true, PinState.LOW, PinPullResistance.PULL_DOWN); // IN 0
 
-		Runtime.getRuntime().addShutdownHook(new Thread() {
-			@Override
-			public void run() {
-				gpio.shutdown();
-			}
-		});
-
 		while (true) {
 			for (int i = PWM_MIN_VALUE; i <= PWM_MAX_VALUE; i++) {
 				ledPin1.setPwm(i);
