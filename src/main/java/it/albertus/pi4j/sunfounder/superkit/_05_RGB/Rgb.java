@@ -3,6 +3,8 @@ package it.albertus.pi4j.sunfounder.superkit._05_RGB;
 import com.pi4j.io.gpio.GpioController;
 import com.pi4j.io.gpio.GpioFactory;
 import com.pi4j.io.gpio.GpioPinPwmOutput;
+import com.pi4j.io.gpio.PinPullResistance;
+import com.pi4j.io.gpio.PinState;
 import com.pi4j.io.gpio.RaspiPin;
 
 public class Rgb {
@@ -13,10 +15,14 @@ public class Rgb {
 	private static GpioPinPwmOutput ledPinBlue;
 
 	private static void ledInit() {
-		ledPinRed = gpio.provisionSoftPwmOutputPin(RaspiPin.GPIO_00, 0);
-		ledPinGreen = gpio.provisionPwmOutputPin(RaspiPin.GPIO_01, 0);
+		ledPinRed = gpio.provisionSoftPwmOutputPin(RaspiPin.GPIO_00);
+		ledPinGreen = gpio.provisionPwmOutputPin(RaspiPin.GPIO_01);
 		ledPinGreen.setPwmRange(100);
-		ledPinBlue = gpio.provisionSoftPwmOutputPin(RaspiPin.GPIO_02, 0);
+		ledPinBlue = gpio.provisionSoftPwmOutputPin(RaspiPin.GPIO_02);
+
+		ledPinRed.setShutdownOptions(true, PinState.LOW, PinPullResistance.PULL_DOWN); // IN 0
+		ledPinGreen.setShutdownOptions(true, PinState.LOW, PinPullResistance.PULL_DOWN); // IN 0
+		ledPinBlue.setShutdownOptions(true, PinState.LOW, PinPullResistance.PULL_DOWN); // IN 0
 	}
 
 	private static void ledColorSet(final int rVal, final int gVal, final int bVal) {

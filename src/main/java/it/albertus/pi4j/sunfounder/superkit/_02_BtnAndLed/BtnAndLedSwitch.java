@@ -18,6 +18,8 @@ public class BtnAndLedSwitch {
 		final GpioPinDigitalOutput ledPin = gpio.provisionDigitalOutputPin(RaspiPin.GPIO_00, PinState.HIGH);
 		final GpioPinDigitalInput buttonPin = gpio.provisionDigitalInputPin(RaspiPin.GPIO_01, PinPullResistance.PULL_UP);
 
+		ledPin.setShutdownOptions(true, PinState.LOW, PinPullResistance.PULL_UP); // IN 0
+
 		buttonPin.setDebounce(100);
 
 		// create and register gpio pin listener

@@ -13,8 +13,10 @@ public class BtnAndLed {
 	public static void main(final String... args) throws InterruptedException {
 		final GpioController gpio = GpioFactory.getInstance();
 
-		final GpioPinDigitalOutput ledPin = gpio.provisionDigitalOutputPin(RaspiPin.GPIO_00, PinState.HIGH);
+		final GpioPinDigitalOutput ledPin = gpio.provisionDigitalOutputPin(RaspiPin.GPIO_00);
 		final GpioPinDigitalInput buttonPin = gpio.provisionDigitalInputPin(RaspiPin.GPIO_01, PinPullResistance.PULL_UP);
+
+		ledPin.setShutdownOptions(true, PinState.LOW, PinPullResistance.PULL_UP); // IN 0
 
 		while (true) {
 			ledPin.high();
