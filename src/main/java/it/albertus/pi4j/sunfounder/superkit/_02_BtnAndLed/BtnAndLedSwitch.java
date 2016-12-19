@@ -18,7 +18,7 @@ public class BtnAndLedSwitch {
 		final GpioPinDigitalOutput ledPin = gpio.provisionDigitalOutputPin(RaspiPin.GPIO_00, PinState.HIGH);
 		final GpioPinDigitalInput buttonPin = gpio.provisionDigitalInputPin(RaspiPin.GPIO_01, PinPullResistance.PULL_UP);
 
-		buttonPin.setDebounce(200, PinState.LOW);
+		buttonPin.setDebounce(100);
 
 		// create and register gpio pin listener
 		buttonPin.addListener(new GpioPinListenerDigital() {
@@ -26,7 +26,8 @@ public class BtnAndLedSwitch {
 			public void handleGpioPinDigitalStateChangeEvent(final GpioPinDigitalStateChangeEvent event) {
 				if (event.getState().isLow()) {
 					final PinState oldLedPinState = ledPin.getState();
-					ledPin.setState(PinState.getInverseState(oldLedPinState));
+					final PinState newPinState = PinState.getInverseState(oldLedPinState);
+					ledPin.setState(newPinState);
 				}
 			}
 		});
