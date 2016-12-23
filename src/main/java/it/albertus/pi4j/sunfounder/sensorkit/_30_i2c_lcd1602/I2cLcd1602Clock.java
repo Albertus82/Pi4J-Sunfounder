@@ -113,19 +113,27 @@ public class I2cLcd1602Clock {
 		fd = I2C.wiringPiI2CSetup(LCD_ADDR);
 		init();
 
-		String dateStr2 = null;
-		String timeStr2 = null;
+		String oldDateStr = null;
+		String oldTimeStr = null;
+		clear();
 		while (true) {
-			final Date d = new Date();
-			final String dateStr = dfDate.format(d);
-			final String timeStr = dfTime.format(d);
-			if (!dateStr.equals(dateStr2) || !timeStr.equals(timeStr2)) {
+			final Date date = new Date();
+			final String dateStr = dfDate.format(date);
+			final String timeStr = dfTime.format(date);
+			if (!dateStr.equals(oldDateStr) || !timeStr.equals(oldTimeStr)) {
 				write(0, 0, dateStr);
 				write(0, 1, timeStr);
-				System.out.println(dateStr);
-				System.out.println(timeStr);
-				dateStr2 = dateStr;
-				timeStr2 = timeStr;
+				oldDateStr = dateStr;
+				oldTimeStr = timeStr;
+				final Thread logThread = new Thread() {
+					@Override
+					public void run() {
+						System.out.println(dateStr);
+						System.out.println(timeStr);
+					}
+				};
+				logThread.setPriority(Thread.MIN_PRIORITY);
+				logThread.start();
 			}
 			delay(50);
 		}
