@@ -29,7 +29,7 @@ public class I2cLcd1602Clock {
 		buf = comm & 0xF0;
 		buf |= 0x04; // RS = 0, RW = 0, EN = 1
 		writeWord(buf);
-		delay(2);
+//		delay(2);
 		buf &= 0xFB; // Make EN = 0
 		writeWord(buf);
 
@@ -37,7 +37,7 @@ public class I2cLcd1602Clock {
 		buf = (comm & 0x0F) << 4;
 		buf |= 0x04; // RS = 0, RW = 0, EN = 1
 		writeWord(buf);
-		delay(2);
+//		delay(2);
 		buf &= 0xFB; // Make EN = 0
 		writeWord(buf);
 	}
@@ -48,7 +48,7 @@ public class I2cLcd1602Clock {
 		buf = data & 0xF0;
 		buf |= 0x05; // RS = 1, RW = 0, EN = 1
 		writeWord(buf);
-		delay(2);
+//		delay(2);
 		buf &= 0xFB; // Make EN = 0
 		writeWord(buf);
 
@@ -56,7 +56,7 @@ public class I2cLcd1602Clock {
 		buf = (data & 0x0F) << 4;
 		buf |= 0x05; // RS = 1, RW = 0, EN = 1
 		writeWord(buf);
-		delay(2);
+//		delay(2);
 		buf &= 0xFB; // Make EN = 0
 		writeWord(buf);
 	}
@@ -113,22 +113,45 @@ public class I2cLcd1602Clock {
 		fd = I2C.wiringPiI2CSetup(LCD_ADDR);
 		init();
 
-		String oldDateStr = null;
-		String oldTimeStr = null;
+		String oldDateStr = "";
+		String oldTimeStr = "";
 		clear();
 		while (true) {
 			final Date date = new Date();
 			final String dateStr = dfDate.format(date);
 			final String timeStr = dfTime.format(date);
-			if (!dateStr.equals(oldDateStr) || !timeStr.equals(oldTimeStr)) {
-				write(0, 0, dateStr);
-				write(0, 1, timeStr);
+			if (!dateStr.equals(oldDateStr)) {
+				String toPrint = dateStr;
+				if (oldDateStr.length() > dateStr.length()) {
+					for (int i = dateStr.length(); i < oldDateStr.length(); i++) {
+						toPrint += ' ';
+					}
+					System.out.println(toPrint);
+				}
+				write(0, 0, toPrint);
 				oldDateStr = dateStr;
-				oldTimeStr = timeStr;
 				final Thread logThread = new Thread() {
 					@Override
 					public void run() {
 						System.out.println(dateStr);
+					}
+				};
+				logThread.setPriority(Thread.MIN_PRIORITY);
+				logThread.start();
+			}
+			if (!timeStr.equals(oldTimeStr)) {
+				String toPrint = timeStr;
+				if (oldTimeStr.length() > timeStr.length()) {
+					for (int i = timeStr.length(); i < oldTimeStr.length(); i++) {
+						toPrint += ' ';
+					}
+					System.out.println(toPrint);
+				}
+				write(0, 1, toPrint);
+				oldTimeStr = timeStr;
+				final Thread logThread = new Thread() {
+					@Override
+					public void run() {
 						System.out.println(timeStr);
 					}
 				};
