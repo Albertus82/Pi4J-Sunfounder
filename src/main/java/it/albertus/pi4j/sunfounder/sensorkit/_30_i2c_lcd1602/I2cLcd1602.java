@@ -103,9 +103,9 @@ public class I2cLcd1602 {
 		clear();
 	}
 
-	private static void delay(final int i) {
+	private static void delay(final long millis) {
 		try {
-			Thread.sleep(i);
+			Thread.sleep(millis);
 		}
 		catch (final InterruptedException ie) {
 			throw new RuntimeException(ie);
