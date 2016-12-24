@@ -9,14 +9,15 @@ import com.pi4j.wiringpi.I2C;
 
 public class I2cLcd1602Clock {
 
-	private static final int LCD_HEIGHT = 2;
-	private static final int LCD_WIDTH = 16;
+	private static final short LCD_HEIGHT = 2;
+	private static final short LCD_WIDTH = 16;
 
-	private static final int LCD_ADDRESS = 0x27;
-	private static final int BLEN = 1;
+	private static final byte LCD_ADDRESS = 0x27;
+	private static final byte BLEN = 1;
 
-	private static final long DELAY_COMMAND = (long) Math.ceil(0.612); // PCF8574: Eh_min=612 us, Eh_max=408 us
-	private static final long DELAY_DATA = (long) Math.ceil(0.612); // PCF8574: Eh_min=612 us, Eh_max=408 us
+	private static final short DELAY_DATA = (short) Math.ceil(0.612); // PCF8574: Eh_min=612 us, Eh_max=408 us
+	private static final short DELAY_COMMAND_SHORT = (short) Math.ceil(0.612); // PCF8574: Eh_min=612 us, Eh_max=408 us
+	private static final short DELAY_COMMAND_LONG = 5;
 
 	private static int fd;
 
@@ -54,7 +55,7 @@ public class I2cLcd1602Clock {
 		buf = comm & 0xF0; // 1111 0000 (get the high nibble)
 		buf |= 0x04; // RS = 0, RW = 0, EN = 1 // 0000 0100 (assert the E strobe)
 		writeWord(buf);
-		delay(DELAY_COMMAND);
+		delay(DELAY_COMMAND_SHORT);
 		buf &= 0xFB; // Make EN = 0 // 1111 1011 (terminate the E strobe)
 		writeWord(buf);
 
@@ -62,7 +63,7 @@ public class I2cLcd1602Clock {
 		buf = (comm & 0x0F) << 4; // 0000 1111 (get the low nibble and shift left)
 		buf |= 0x04; // RS = 0, RW = 0, EN = 1 // 0000 0100 (assert the E strobe)
 		writeWord(buf);
-		delay(DELAY_COMMAND);
+		delay(DELAY_COMMAND_SHORT);
 		buf &= 0xFB; // Make EN = 0 // 1111 1011 (terminate the E strobe)
 		writeWord(buf);
 		if (LOG_ENABLED) {
@@ -96,20 +97,25 @@ public class I2cLcd1602Clock {
 	}
 
 	private static void init() {
-		sendCommand(0x33); // Must initialize to 8-line mode at first // 0011 0011
-		delay(5);
-		sendCommand(0x32); // Then initialize to 4-line mode // 0011 0010
-		delay(5);
-		sendCommand(0x28); // 2 Lines & 5*7 dots // 0010 1000
-		delay(5);
-		sendCommand(0x0C); // Enable display without cursor // 0000 1100
-		delay(5);
+		sendCommand(Integer.parseInt("00110011", 2)); // Must initialize to 8-line mode at first // 0011 0011
+		delay(DELAY_COMMAND_SHORT);
+		sendCommand(Integer.parseInt("00110010", 2)); // Then initialize to 4-line mode // 0011 0010
+		delay(DELAY_COMMAND_SHORT);
+		sendCommand(Integer.parseInt("00101000", 2)); // 2 Lines & 5*7 dots // 0010 1000
+		delay(DELAY_COMMAND_SHORT);
+		sendCommand(Integer.parseInt("00001100", 2)); // Enable display without cursor // 0000 1100
+		delay(DELAY_COMMAND_SHORT);
 		clear(); // Clear Screen
 		I2C.wiringPiI2CWrite(fd, 0x08); // 0000 1000
 	}
 
 	private static void clear() {
-		sendCommand(0x01); //clear Screen
+		sendCommand(Integer.parseInt("00000001", 2)); //clear Screen
+		delay(DELAY_COMMAND_LONG);
+	}
+
+	private static void home() {
+		sendCommand(Integer.parseInt("00000010", 2)); //clear Screen
 		delay(5);
 	}
 
