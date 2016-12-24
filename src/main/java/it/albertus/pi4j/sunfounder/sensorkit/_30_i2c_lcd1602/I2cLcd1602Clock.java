@@ -1,13 +1,17 @@
 package it.albertus.pi4j.sunfounder.sensorkit._30_i2c_lcd1602;
 
 import java.text.DateFormat;
+import java.util.Arrays;
 import java.util.Date;
 
 import com.pi4j.wiringpi.I2C;
 
 public class I2cLcd1602Clock {
 
-	private static final int LCD_ADDR = 0x27;
+	private static final int LCD_HEIGHT = 2;
+	private static final int LCD_WIDTH = 16;
+
+	private static final int LCD_ADDRESS = 0x27;
 	private static final int BLEN = 1;
 
 	private static final long DELAY_COMMAND = (long) Math.ceil(0.612); // PCF8574: Eh_min=612 us, Eh_max=408 us
@@ -17,6 +21,8 @@ public class I2cLcd1602Clock {
 
 	private static final DateFormat dfDate = DateFormat.getDateInstance();
 	private static final DateFormat dfTime = DateFormat.getTimeInstance();
+
+	private static final char matrix[][] = new char[LCD_HEIGHT][LCD_WIDTH];
 
 	private static void writeWord(final int data) {
 		int temp = data;
@@ -96,23 +102,39 @@ public class I2cLcd1602Clock {
 
 	private static void write(int x, int y, String data) {
 		int addr, i;
-		int tmp;
 		if (x < 0)
 			x = 0;
-		if (x > 15)
-			x = 15;
+		if (x > LCD_WIDTH - 1)
+			x = LCD_WIDTH - 1;
 		if (y < 0)
 			y = 0;
-		if (y > 1)
-			y = 1;
+		if (y > LCD_HEIGHT - 1)
+			y = LCD_HEIGHT - 1;
+
+		// Data reduction (ignore equal leading characters)
+		int offsetX = x;
+		boolean stop = false;
+		String reducedData = new String(data);
+		for (i = 0; i < data.length(); i++) {
+			final char c = data.charAt(i);
+			if (matrix[y][x + i] == c) {
+				if (!stop) {
+					offsetX++;
+					reducedData = reducedData.substring(1);
+				}
+			}
+			else {
+				matrix[y][x + i] = c;
+				stop = true;
+			}
+		}
 
 		// Move cursor
-		addr = 0x80 + 0x40 * y + x;
+		addr = 0x80 + 0x40 * y + offsetX;
 		sendCommand(addr);
 
-		tmp = data.length();
-		for (i = 0; i < tmp; i++) {
-			sendData(data.charAt(i));
+		for (i = 0; i < reducedData.length(); i++) {
+			sendData(reducedData.charAt(i));
 		}
 	}
 
@@ -124,12 +146,13 @@ public class I2cLcd1602Clock {
 			}
 		});
 
-		fd = I2C.wiringPiI2CSetup(LCD_ADDR);
+		fd = I2C.wiringPiI2CSetup(LCD_ADDRESS);
 		init();
 
 		String oldDateStr = "";
 		String oldTimeStr = "";
 		while (true) {
+			boolean log = false;
 			final Date date = new Date();
 			final String dateStr = dfDate.format(date);
 			final String timeStr = dfTime.format(date);
@@ -142,7 +165,7 @@ public class I2cLcd1602Clock {
 				}
 				write(0, 0, toPrint);
 				oldDateStr = dateStr;
-				System.out.println(dateStr);
+				log = true;
 			}
 			if (!timeStr.equals(oldTimeStr)) {
 				String toPrint = timeStr;
@@ -153,7 +176,11 @@ public class I2cLcd1602Clock {
 				}
 				write(0, 1, toPrint);
 				oldTimeStr = timeStr;
-				System.out.println(timeStr);
+				log = true;
+			}
+			if (log) {
+				System.out.println(Arrays.toString(matrix[0]).replace("\0", " ").replace(", ", ""));
+				System.out.println(Arrays.toString(matrix[1]).replace("\0", " ").replace(", ", ""));
 			}
 			delay(50);
 		}
