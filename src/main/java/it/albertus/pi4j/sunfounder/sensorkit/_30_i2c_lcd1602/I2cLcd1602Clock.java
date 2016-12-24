@@ -116,7 +116,7 @@ public class I2cLcd1602Clock {
 
 	private static void home() {
 		sendCommand(Integer.parseInt("00000010", 2)); //clear Screen
-		delay(5);
+		delay(DELAY_COMMAND_LONG);
 	}
 
 	private static void write(int x, int y, String data) {
