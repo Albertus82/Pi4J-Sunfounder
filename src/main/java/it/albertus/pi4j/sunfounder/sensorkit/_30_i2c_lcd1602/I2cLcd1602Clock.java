@@ -26,6 +26,8 @@ public class I2cLcd1602Clock {
 
 	private static final char matrix[][] = new char[LCD_HEIGHT][LCD_WIDTH];
 
+	private static final boolean MILLIS = true;
+
 	private static final boolean LOG_ENABLED = true;
 
 	private static void writeWord(final int data) {
@@ -180,7 +182,7 @@ public class I2cLcd1602Clock {
 			boolean logMatrix = false;
 			final Date date = new Date();
 			final String dateStr = dfDate.format(date);
-			final String timeStr = dfTime.format(date).substring(0, 10);
+			final String timeStr = dfTime.format(date).substring(0, MILLIS ? 10 : 8);
 			if (!dateStr.equals(oldDateStr)) {
 				String toPrint = dateStr;
 				if (oldDateStr.length() > dateStr.length()) {
