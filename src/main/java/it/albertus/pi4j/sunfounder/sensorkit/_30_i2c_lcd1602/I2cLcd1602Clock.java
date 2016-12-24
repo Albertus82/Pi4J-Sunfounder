@@ -9,6 +9,10 @@ public class I2cLcd1602Clock {
 
 	private static final int LCD_ADDR = 0x27;
 	private static final int BLEN = 1;
+
+	private static final long DELAY_COMMAND = 1;
+	private static final long DELAY_DATA = 1;
+
 	private static int fd;
 
 	private static final DateFormat dfDate = DateFormat.getDateInstance();
@@ -16,62 +20,73 @@ public class I2cLcd1602Clock {
 
 	private static void writeWord(final int data) {
 		int temp = data;
-		if (BLEN == 1)
-			temp |= 0x08;
-		else
-			temp &= 0xF7;
+		if (BLEN == 1) {
+			temp |= 0x08; // 0000 1000
+		}
+		else {
+			temp &= 0xF7; // 1111 0111
+		}
+
+		// Debug
+		final String bits = String.format("%8s", Integer.toBinaryString(temp)).replace(' ', '0');
+		System.out.println("    " + bits);
+
 		I2C.wiringPiI2CWrite(fd, temp);
 	}
 
-	private static void sendCommand(final int comm) {
+	private static synchronized void sendCommand(final int comm) {
+		System.out.println("<command value=\"" + String.format("%8s", Integer.toBinaryString(comm)).replace(' ', '0') + "\" hex=\"0x" + String.format("%X", comm) + "\">");
 		int buf;
 		// Send bit7-4 firstly
-		buf = comm & 0xF0;
-		buf |= 0x04; // RS = 0, RW = 0, EN = 1
+		buf = comm & 0xF0; // 1111 0000
+		buf |= 0x04; // RS = 0, RW = 0, EN = 1 // 0000 0100
 		writeWord(buf);
-//		delay(2);
-		buf &= 0xFB; // Make EN = 0
+		delay(DELAY_COMMAND);
+		buf &= 0xFB; // Make EN = 0 // 1111 1011
 		writeWord(buf);
 
 		// Send bit3-0 secondly
-		buf = (comm & 0x0F) << 4;
-		buf |= 0x04; // RS = 0, RW = 0, EN = 1
+		buf = (comm & 0x0F) << 4; // 0000 1111
+		buf |= 0x04; // RS = 0, RW = 0, EN = 1 // 0000 0100
 		writeWord(buf);
-//		delay(2);
-		buf &= 0xFB; // Make EN = 0
+		delay(DELAY_COMMAND);
+		buf &= 0xFB; // Make EN = 0 // 1111 1011
 		writeWord(buf);
+		System.out.println("</command>");
 	}
 
-	private static void sendData(final int data) {
+	private static synchronized void sendData(final int data) {
+		System.out.println("<data value=\"" + String.format("%8s", Integer.toBinaryString(data)).replace(' ', '0') + "\" hex=\"0x" + String.format("%X", data) + "\" char=\"" + String.format("%c", (char) data) + "\">");
 		int buf;
 		// Send bit7-4 firstly
-		buf = data & 0xF0;
-		buf |= 0x05; // RS = 1, RW = 0, EN = 1
+		buf = data & 0xF0; // 1111 0000
+		buf |= 0x05; // RS = 1, RW = 0, EN = 1 // 0000 0101
 		writeWord(buf);
-//		delay(2);
-		buf &= 0xFB; // Make EN = 0
+		delay(DELAY_DATA);
+		buf &= 0xFB; // Make EN = 0 // 1111 1011
 		writeWord(buf);
 
 		// Send bit3-0 secondly
-		buf = (data & 0x0F) << 4;
-		buf |= 0x05; // RS = 1, RW = 0, EN = 1
+		buf = (data & 0x0F) << 4; // 0000 1111
+		buf |= 0x05; // RS = 1, RW = 0, EN = 1 // 0000 0101
 		writeWord(buf);
-//		delay(2);
-		buf &= 0xFB; // Make EN = 0
+		delay(DELAY_DATA);
+		buf &= 0xFB; // Make EN = 0 // 1111 1011
 		writeWord(buf);
+		System.out.println("</data>");
 	}
 
 	private static void init() {
-		sendCommand(0x33); // Must initialize to 8-line mode at first
+		sendCommand(0x33); // Must initialize to 8-line mode at first // 0011 0011
 		delay(5);
-		sendCommand(0x32); // Then initialize to 4-line mode
+		sendCommand(0x32); // Then initialize to 4-line mode // 0011 0010
 		delay(5);
-		sendCommand(0x28); // 2 Lines & 5*7 dots
+		sendCommand(0x28); // 2 Lines & 5*7 dots // 0010 1000
 		delay(5);
-		sendCommand(0x0C); // Enable display without cursor
+		sendCommand(0x0C); // Enable display without cursor // 0000 1100
 		delay(5);
-		sendCommand(0x01); // Clear Screen
-		I2C.wiringPiI2CWrite(fd, 0x08);
+		clear(); // Clear Screen
+		I2C.wiringPiI2CWrite(fd, 0x08); // 0000 1000
 	}
 
 	private static void clear() {
@@ -115,7 +130,6 @@ public class I2cLcd1602Clock {
 
 		String oldDateStr = "";
 		String oldTimeStr = "";
-		clear();
 		while (true) {
 			final Date date = new Date();
 			final String dateStr = dfDate.format(date);
@@ -126,18 +140,10 @@ public class I2cLcd1602Clock {
 					for (int i = dateStr.length(); i < oldDateStr.length(); i++) {
 						toPrint += ' ';
 					}
-					System.out.println(toPrint);
 				}
 				write(0, 0, toPrint);
 				oldDateStr = dateStr;
-				final Thread logThread = new Thread() {
-					@Override
-					public void run() {
-						System.out.println(dateStr);
-					}
-				};
-				logThread.setPriority(Thread.MIN_PRIORITY);
-				logThread.start();
+				System.out.println(dateStr);
 			}
 			if (!timeStr.equals(oldTimeStr)) {
 				String toPrint = timeStr;
@@ -145,29 +151,23 @@ public class I2cLcd1602Clock {
 					for (int i = timeStr.length(); i < oldTimeStr.length(); i++) {
 						toPrint += ' ';
 					}
-					System.out.println(toPrint);
 				}
 				write(0, 1, toPrint);
 				oldTimeStr = timeStr;
-				final Thread logThread = new Thread() {
-					@Override
-					public void run() {
-						System.out.println(timeStr);
-					}
-				};
-				logThread.setPriority(Thread.MIN_PRIORITY);
-				logThread.start();
+				System.out.println(timeStr);
 			}
 			delay(50);
 		}
 	}
 
 	private static void delay(final long millis) {
-		try {
-			Thread.sleep(millis);
-		}
-		catch (final InterruptedException ie) {
-			throw new RuntimeException(ie);
+		if (millis > 0) {
+			try {
+				Thread.sleep(millis);
+			}
+			catch (final InterruptedException ie) {
+				throw new RuntimeException(ie);
+			}
 		}
 	}
 
