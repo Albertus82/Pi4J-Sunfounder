@@ -35,14 +35,14 @@ public class I2cLcd1602Clock {
 	}
 
 	private static synchronized void sendCommand(final int comm) {
-		System.out.println("<command value=\"" + String.format("%8s", Integer.toBinaryString(comm)).replace(' ', '0') + "\" hex=\"0x" + String.format("%X", comm) + "\">");
+		System.out.println("<command value=\"" + String.format("%8s", Integer.toBinaryString(comm)).replace(' ', '0') + "\" hex=\"0x" + String.format("%02X", comm) + "\">");
 		int buf;
 		// Send bit7-4 firstly
 		buf = comm & 0xF0; // 1111 0000
-		buf |= 0x04; // RS = 0, RW = 0, EN = 1 // 0000 0100 assert the E strobe
+		buf |= 0x04; // RS = 0, RW = 0, EN = 1 // 0000 0100 (assert the E strobe)
 		writeWord(buf);
 		delay(DELAY_COMMAND);
-		buf &= 0xFB; // Make EN = 0 // 1111 1011 terminate the E strobe
+		buf &= 0xFB; // Make EN = 0 // 1111 1011 (terminate the E strobe)
 		writeWord(buf);
 
 		// Send bit3-0 secondly
@@ -56,7 +56,7 @@ public class I2cLcd1602Clock {
 	}
 
 	private static synchronized void sendData(final int data) {
-		System.out.println("<data value=\"" + String.format("%8s", Integer.toBinaryString(data)).replace(' ', '0') + "\" hex=\"0x" + String.format("%X", data) + "\" char=\"" + String.format("%c", (char) data) + "\">");
+		System.out.println("<data value=\"" + String.format("%8s", Integer.toBinaryString(data)).replace(' ', '0') + "\" hex=\"0x" + String.format("%02X", data) + "\" char=\"" + String.format("%c", (char) data) + "\">");
 		int buf;
 		// Send bit7-4 firstly
 		buf = data & 0xF0; // 1111 0000 (get the MSN)
@@ -91,6 +91,7 @@ public class I2cLcd1602Clock {
 
 	private static void clear() {
 		sendCommand(0x01); //clear Screen
+		delay(5);
 	}
 
 	private static void write(int x, int y, String data) {
@@ -119,10 +120,7 @@ public class I2cLcd1602Clock {
 		Runtime.getRuntime().addShutdownHook(new Thread() {
 			@Override
 			public void run() {
-				System.out.println("Clear");
-				delay(100);
 				clear();
-				System.out.println(DELAY_DATA);
 			}
 		});
 
