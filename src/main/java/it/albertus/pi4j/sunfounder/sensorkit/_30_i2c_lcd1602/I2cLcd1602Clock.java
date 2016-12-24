@@ -21,7 +21,7 @@ public class I2cLcd1602Clock {
 	private static int fd;
 
 	private static final DateFormat dfDate = DateFormat.getDateInstance();
-	private static final DateFormat dfTime = new SimpleDateFormat("HH:mm:ss.S");
+	private static final DateFormat dfTime = new SimpleDateFormat("HH:mm:ss.SSS");
 
 	private static final char matrix[][] = new char[LCD_HEIGHT][LCD_WIDTH];
 
@@ -39,7 +39,7 @@ public class I2cLcd1602Clock {
 		// Debug
 		final String bits = String.format("%8s", Integer.toBinaryString(temp)).replace(' ', '0');
 		if (LOG_ENABLED) {
-			System.out.println('\t' + bits);
+			System.out.println("\t\t" + bits);
 		}
 
 		I2C.wiringPiI2CWrite(fd, temp);
@@ -47,7 +47,7 @@ public class I2cLcd1602Clock {
 
 	private static synchronized void sendCommand(final int comm) {
 		if (LOG_ENABLED) {
-			System.out.println("<command value=\"" + String.format("%8s", Integer.toBinaryString(comm)).replace(' ', '0') + "\" hex=\"0x" + String.format("%02X", comm) + "\">");
+			System.out.println("\t<command value=\"" + String.format("%8s", Integer.toBinaryString(comm)).replace(' ', '0') + "\" hex=\"0x" + String.format("%02X", comm) + "\">");
 		}
 		int buf;
 		// Send bit7-4 firstly
@@ -66,13 +66,13 @@ public class I2cLcd1602Clock {
 		buf &= 0xFB; // Make EN = 0 // 1111 1011 (terminate the E strobe)
 		writeWord(buf);
 		if (LOG_ENABLED) {
-			System.out.println("</command>");
+			System.out.println("\t</command>");
 		}
 	}
 
 	private static synchronized void sendData(final int data) {
 		if (LOG_ENABLED) {
-			System.out.println("<data value=\"" + String.format("%8s", Integer.toBinaryString(data)).replace(' ', '0') + "\" hex=\"0x" + String.format("%02X", data) + "\" char=\"" + String.format("%c", (char) data) + "\">");
+			System.out.println("\t<data value=\"" + String.format("%8s", Integer.toBinaryString(data)).replace(' ', '0') + "\" hex=\"0x" + String.format("%02X", data) + "\" char=\"" + String.format("%c", (char) data) + "\">");
 		}
 		int buf;
 		// Send bit7-4 firstly
@@ -91,7 +91,7 @@ public class I2cLcd1602Clock {
 		buf &= 0xFB; // Make EN = 0 // 1111 1011 (terminate the E strobe)
 		writeWord(buf);
 		if (LOG_ENABLED) {
-			System.out.println("</data>");
+			System.out.println("\t</data>");
 		}
 	}
 
@@ -152,10 +152,16 @@ public class I2cLcd1602Clock {
 	}
 
 	public static void main(final String... args) {
+		if (LOG_ENABLED) {
+			System.out.println("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>");
+			System.out.println("<!DOCTYPE clock>");
+			System.out.println("<clock date=\"" + new Date() + "\">");
+		}
 		Runtime.getRuntime().addShutdownHook(new Thread() {
 			@Override
 			public void run() {
 				clear();
+				System.out.println("</clock>");
 			}
 		});
 
@@ -165,7 +171,7 @@ public class I2cLcd1602Clock {
 		String oldDateStr = "";
 		String oldTimeStr = "";
 		while (true) {
-			boolean log = false;
+			boolean logMatrix = false;
 			final Date date = new Date();
 			final String dateStr = dfDate.format(date);
 			final String timeStr = dfTime.format(date).substring(0, 10);
@@ -178,7 +184,7 @@ public class I2cLcd1602Clock {
 				}
 				write(0, 0, toPrint);
 				oldDateStr = dateStr;
-				log = true;
+				logMatrix = true;
 			}
 			if (!timeStr.equals(oldTimeStr)) {
 				String toPrint = timeStr;
@@ -189,11 +195,13 @@ public class I2cLcd1602Clock {
 				}
 				write(0, 1, toPrint);
 				oldTimeStr = timeStr;
-				log = true;
+				logMatrix = true;
 			}
-			if (LOG_ENABLED && log) {
-				System.out.println(Arrays.toString(matrix[0]).replace("\0", " ").replace(", ", ""));
-				System.out.println(Arrays.toString(matrix[1]).replace("\0", " ").replace(", ", ""));
+			if (LOG_ENABLED && logMatrix) {
+				System.out.println("\t<matrix>");
+				System.out.println("\t\t" + Arrays.toString(matrix[0]).replace("\0", " ").replace(", ", "").replace(' ', '~'));
+				System.out.println("\t\t" + Arrays.toString(matrix[1]).replace("\0", " ").replace(", ", "").replace(' ', '~'));
+				System.out.println("\t</matrix>");
 			}
 			delay(25);
 		}
