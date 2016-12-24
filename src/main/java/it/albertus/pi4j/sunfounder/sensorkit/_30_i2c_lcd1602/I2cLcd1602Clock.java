@@ -1,6 +1,7 @@
 package it.albertus.pi4j.sunfounder.sensorkit._30_i2c_lcd1602;
 
 import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
 
@@ -20,9 +21,11 @@ public class I2cLcd1602Clock {
 	private static int fd;
 
 	private static final DateFormat dfDate = DateFormat.getDateInstance();
-	private static final DateFormat dfTime = DateFormat.getTimeInstance();
+	private static final DateFormat dfTime = new SimpleDateFormat("HH:mm:ss.S");
 
 	private static final char matrix[][] = new char[LCD_HEIGHT][LCD_WIDTH];
+
+	private static final boolean LOG_ENABLED = true;
 
 	private static void writeWord(final int data) {
 		int temp = data;
@@ -35,13 +38,17 @@ public class I2cLcd1602Clock {
 
 		// Debug
 		final String bits = String.format("%8s", Integer.toBinaryString(temp)).replace(' ', '0');
-		System.out.println("    " + bits);
+		if (LOG_ENABLED) {
+			System.out.println('\t' + bits);
+		}
 
 		I2C.wiringPiI2CWrite(fd, temp);
 	}
 
 	private static synchronized void sendCommand(final int comm) {
-		System.out.println("<command value=\"" + String.format("%8s", Integer.toBinaryString(comm)).replace(' ', '0') + "\" hex=\"0x" + String.format("%02X", comm) + "\">");
+		if (LOG_ENABLED) {
+			System.out.println("<command value=\"" + String.format("%8s", Integer.toBinaryString(comm)).replace(' ', '0') + "\" hex=\"0x" + String.format("%02X", comm) + "\">");
+		}
 		int buf;
 		// Send bit7-4 firstly
 		buf = comm & 0xF0; // 1111 0000 (get the high nibble)
@@ -58,11 +65,15 @@ public class I2cLcd1602Clock {
 		delay(DELAY_COMMAND);
 		buf &= 0xFB; // Make EN = 0 // 1111 1011 (terminate the E strobe)
 		writeWord(buf);
-		System.out.println("</command>");
+		if (LOG_ENABLED) {
+			System.out.println("</command>");
+		}
 	}
 
 	private static synchronized void sendData(final int data) {
-		System.out.println("<data value=\"" + String.format("%8s", Integer.toBinaryString(data)).replace(' ', '0') + "\" hex=\"0x" + String.format("%02X", data) + "\" char=\"" + String.format("%c", (char) data) + "\">");
+		if (LOG_ENABLED) {
+			System.out.println("<data value=\"" + String.format("%8s", Integer.toBinaryString(data)).replace(' ', '0') + "\" hex=\"0x" + String.format("%02X", data) + "\" char=\"" + String.format("%c", (char) data) + "\">");
+		}
 		int buf;
 		// Send bit7-4 firstly
 		buf = data & 0xF0; // 1111 0000 (get the high nibble)
@@ -79,7 +90,9 @@ public class I2cLcd1602Clock {
 		delay(DELAY_DATA);
 		buf &= 0xFB; // Make EN = 0 // 1111 1011 (terminate the E strobe)
 		writeWord(buf);
-		System.out.println("</data>");
+		if (LOG_ENABLED) {
+			System.out.println("</data>");
+		}
 	}
 
 	private static void init() {
@@ -155,7 +168,7 @@ public class I2cLcd1602Clock {
 			boolean log = false;
 			final Date date = new Date();
 			final String dateStr = dfDate.format(date);
-			final String timeStr = dfTime.format(date);
+			final String timeStr = dfTime.format(date).substring(0, 10);
 			if (!dateStr.equals(oldDateStr)) {
 				String toPrint = dateStr;
 				if (oldDateStr.length() > dateStr.length()) {
@@ -178,11 +191,11 @@ public class I2cLcd1602Clock {
 				oldTimeStr = timeStr;
 				log = true;
 			}
-			if (log) {
+			if (LOG_ENABLED && log) {
 				System.out.println(Arrays.toString(matrix[0]).replace("\0", " ").replace(", ", ""));
 				System.out.println(Arrays.toString(matrix[1]).replace("\0", " ").replace(", ", ""));
 			}
-			delay(50);
+			delay(25);
 		}
 	}
 
