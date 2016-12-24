@@ -31,10 +31,10 @@ public class I2cLcd1602Clock {
 	private static void writeWord(final int data) {
 		int temp = data;
 		if (BLEN == 1) {
-			temp |= 0x08; // 0000 1000
+			temp |= Integer.parseInt("00001000", 2); // 0000 1000
 		}
 		else {
-			temp &= 0xF7; // 1111 0111
+			temp &= Integer.parseInt("11110111", 2); // 1111 0111
 		}
 
 		// Debug
@@ -52,19 +52,19 @@ public class I2cLcd1602Clock {
 		}
 		int buf;
 		// Send bit7-4 firstly
-		buf = comm & 0xF0; // 1111 0000 (get the high nibble)
-		buf |= 0x04; // RS = 0, RW = 0, EN = 1 // 0000 0100 (assert the E strobe)
+		buf = comm & Integer.parseInt("11110000", 2); // 1111 0000 (get the high nibble)
+		buf |= Integer.parseInt("00000100", 2); // RS = 0, RW = 0, EN = 1 // 0000 0100 (assert the E strobe)
 		writeWord(buf);
 		delay(DELAY_COMMAND_SHORT);
-		buf &= 0xFB; // Make EN = 0 // 1111 1011 (terminate the E strobe)
+		buf &= Integer.parseInt("11111011", 2); // Make EN = 0 // 1111 1011 (terminate the E strobe)
 		writeWord(buf);
 
 		// Send bit3-0 secondly
-		buf = (comm & 0x0F) << 4; // 0000 1111 (get the low nibble and shift left)
-		buf |= 0x04; // RS = 0, RW = 0, EN = 1 // 0000 0100 (assert the E strobe)
+		buf = (comm & Integer.parseInt("00001111", 2)) << 4; // 0000 1111 (get the low nibble and shift left)
+		buf |= Integer.parseInt("00000100", 2); // RS = 0, RW = 0, EN = 1 // 0000 0100 (assert the E strobe)
 		writeWord(buf);
 		delay(DELAY_COMMAND_SHORT);
-		buf &= 0xFB; // Make EN = 0 // 1111 1011 (terminate the E strobe)
+		buf &= Integer.parseInt("11111011", 2); // Make EN = 0 // 1111 1011 (terminate the E strobe)
 		writeWord(buf);
 		if (LOG_ENABLED) {
 			System.out.println("\t</command>");
@@ -77,19 +77,19 @@ public class I2cLcd1602Clock {
 		}
 		int buf;
 		// Send bit7-4 firstly
-		buf = data & 0xF0; // 1111 0000 (get the high nibble)
-		buf |= 0x05; // RS = 1, RW = 0, EN = 1 // 0000 0101 (assert the E strobe)
+		buf = data & Integer.parseInt("11110000", 2); // 1111 0000 (get the high nibble)
+		buf |= Integer.parseInt("00000101", 2); // RS = 1, RW = 0, EN = 1 // 0000 0101 (assert the E strobe)
 		writeWord(buf);
 		delay(DELAY_DATA);
-		buf &= 0xFB; // Make EN = 0 // 1111 1011 (terminate the E strobe)
+		buf &= Integer.parseInt("11111011", 2); // Make EN = 0 // 1111 1011 (terminate the E strobe)
 		writeWord(buf);
 
 		// Send bit3-0 secondly
-		buf = (data & 0x0F) << 4; // 0000 1111 (get the low nibble and shift left)
-		buf |= 0x05; // RS = 1, RW = 0, EN = 1 // 0000 0101 (assert the E strobe)
+		buf = (data & Integer.parseInt("00001111", 2)) << 4; // 0000 1111 (get the low nibble and shift left)
+		buf |= Integer.parseInt("00000101", 2); // RS = 1, RW = 0, EN = 1 // 0000 0101 (assert the E strobe)
 		writeWord(buf);
 		delay(DELAY_DATA);
-		buf &= 0xFB; // Make EN = 0 // 1111 1011 (terminate the E strobe)
+		buf &= Integer.parseInt("11111011", 2); // Make EN = 0 // 1111 1011 (terminate the E strobe)
 		writeWord(buf);
 		if (LOG_ENABLED) {
 			System.out.println("\t</data>");
@@ -106,7 +106,7 @@ public class I2cLcd1602Clock {
 		sendCommand(Integer.parseInt("00001100", 2)); // Enable display without cursor // 0000 1100
 		delay(DELAY_COMMAND_SHORT);
 		clear(); // Clear Screen
-		I2C.wiringPiI2CWrite(fd, 0x08); // 0000 1000
+		I2C.wiringPiI2CWrite(fd, Integer.parseInt("00001000", 2)); // 0000 1000
 	}
 
 	private static void clear() {
