@@ -38,7 +38,7 @@ public class I2cLcd1602Clock {
 		System.out.println("<command value=\"" + String.format("%8s", Integer.toBinaryString(comm)).replace(' ', '0') + "\" hex=\"0x" + String.format("%02X", comm) + "\">");
 		int buf;
 		// Send bit7-4 firstly
-		buf = comm & 0xF0; // 1111 0000
+		buf = comm & 0xF0; // 1111 0000 (get the high nibble)
 		buf |= 0x04; // RS = 0, RW = 0, EN = 1 // 0000 0100 (assert the E strobe)
 		writeWord(buf);
 		delay(DELAY_COMMAND);
@@ -46,7 +46,7 @@ public class I2cLcd1602Clock {
 		writeWord(buf);
 
 		// Send bit3-0 secondly
-		buf = (comm & 0x0F) << 4; // 0000 1111
+		buf = (comm & 0x0F) << 4; // 0000 1111 (get the low nibble and shift left)
 		buf |= 0x04; // RS = 0, RW = 0, EN = 1 // 0000 0100 (assert the E strobe)
 		writeWord(buf);
 		delay(DELAY_COMMAND);
@@ -59,7 +59,7 @@ public class I2cLcd1602Clock {
 		System.out.println("<data value=\"" + String.format("%8s", Integer.toBinaryString(data)).replace(' ', '0') + "\" hex=\"0x" + String.format("%02X", data) + "\" char=\"" + String.format("%c", (char) data) + "\">");
 		int buf;
 		// Send bit7-4 firstly
-		buf = data & 0xF0; // 1111 0000 (get the MSN)
+		buf = data & 0xF0; // 1111 0000 (get the high nibble)
 		buf |= 0x05; // RS = 1, RW = 0, EN = 1 // 0000 0101 (assert the E strobe)
 		writeWord(buf);
 		delay(DELAY_DATA);
@@ -67,7 +67,7 @@ public class I2cLcd1602Clock {
 		writeWord(buf);
 
 		// Send bit3-0 secondly
-		buf = (data & 0x0F) << 4; // 0000 1111 (get the LSN and shift left)
+		buf = (data & 0x0F) << 4; // 0000 1111 (get the low nibble and shift left)
 		buf |= 0x05; // RS = 1, RW = 0, EN = 1 // 0000 0101 (assert the E strobe)
 		writeWord(buf);
 		delay(DELAY_DATA);
