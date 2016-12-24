@@ -10,8 +10,8 @@ public class I2cLcd1602Clock {
 	private static final int LCD_ADDR = 0x27;
 	private static final int BLEN = 1;
 
-	private static final long DELAY_COMMAND = 1;
-	private static final long DELAY_DATA = 1;
+	private static final long DELAY_COMMAND = (long) Math.ceil(0.612); // PCF8574: Eh_min=612 us, Eh_max=408 us
+	private static final long DELAY_DATA = (long) Math.ceil(0.612); // PCF8574: Eh_min=612 us, Eh_max=408 us
 
 	private static int fd;
 
@@ -39,18 +39,18 @@ public class I2cLcd1602Clock {
 		int buf;
 		// Send bit7-4 firstly
 		buf = comm & 0xF0; // 1111 0000
-		buf |= 0x04; // RS = 0, RW = 0, EN = 1 // 0000 0100
+		buf |= 0x04; // RS = 0, RW = 0, EN = 1 // 0000 0100 assert the E strobe
 		writeWord(buf);
 		delay(DELAY_COMMAND);
-		buf &= 0xFB; // Make EN = 0 // 1111 1011
+		buf &= 0xFB; // Make EN = 0 // 1111 1011 terminate the E strobe
 		writeWord(buf);
 
 		// Send bit3-0 secondly
 		buf = (comm & 0x0F) << 4; // 0000 1111
-		buf |= 0x04; // RS = 0, RW = 0, EN = 1 // 0000 0100
+		buf |= 0x04; // RS = 0, RW = 0, EN = 1 // 0000 0100 (assert the E strobe)
 		writeWord(buf);
 		delay(DELAY_COMMAND);
-		buf &= 0xFB; // Make EN = 0 // 1111 1011
+		buf &= 0xFB; // Make EN = 0 // 1111 1011 (terminate the E strobe)
 		writeWord(buf);
 		System.out.println("</command>");
 	}
@@ -59,19 +59,19 @@ public class I2cLcd1602Clock {
 		System.out.println("<data value=\"" + String.format("%8s", Integer.toBinaryString(data)).replace(' ', '0') + "\" hex=\"0x" + String.format("%X", data) + "\" char=\"" + String.format("%c", (char) data) + "\">");
 		int buf;
 		// Send bit7-4 firstly
-		buf = data & 0xF0; // 1111 0000
-		buf |= 0x05; // RS = 1, RW = 0, EN = 1 // 0000 0101
+		buf = data & 0xF0; // 1111 0000 (get the MSN)
+		buf |= 0x05; // RS = 1, RW = 0, EN = 1 // 0000 0101 (assert the E strobe)
 		writeWord(buf);
 		delay(DELAY_DATA);
-		buf &= 0xFB; // Make EN = 0 // 1111 1011
+		buf &= 0xFB; // Make EN = 0 // 1111 1011 (terminate the E strobe)
 		writeWord(buf);
 
 		// Send bit3-0 secondly
-		buf = (data & 0x0F) << 4; // 0000 1111
-		buf |= 0x05; // RS = 1, RW = 0, EN = 1 // 0000 0101
+		buf = (data & 0x0F) << 4; // 0000 1111 (get the LSN and shift left)
+		buf |= 0x05; // RS = 1, RW = 0, EN = 1 // 0000 0101 (assert the E strobe)
 		writeWord(buf);
 		delay(DELAY_DATA);
-		buf &= 0xFB; // Make EN = 0 // 1111 1011
+		buf &= 0xFB; // Make EN = 0 // 1111 1011 (terminate the E strobe)
 		writeWord(buf);
 		System.out.println("</data>");
 	}
@@ -122,6 +122,7 @@ public class I2cLcd1602Clock {
 				System.out.println("Clear");
 				delay(100);
 				clear();
+				System.out.println(DELAY_DATA);
 			}
 		});
 
